@@ -21,25 +21,6 @@ def get_sp500_tickers():
     tickers = sp500['Symbol'].tolist()
     return tickers
 
-def history_data(ticker):
-    """
-    Creates the base stock dataframe with historical stock data dating back to the stock's inception.
-    
-    Parameters:
-    - ticker: Selected ticker symbol
-
-    Returns:
-    - Dataframe with stock data
-    - Columns: Open, Close, High, Low, Volume
-    """
-
-    ticker_history = yf.Ticker(ticker)
-    dataframe = ticker_history.history(period='max')
-    
-    # Dropping irrelevant columns
-    dataframe.drop(columns=['Dividends', 'Stock Splits'], inplace=True)
-    return dataframe
-
 def df_for_candlestick(horizon, ticker):
     """
     Creates dataframe to plot candlestick chart.
@@ -52,8 +33,8 @@ def df_for_candlestick(horizon, ticker):
     - Candlestick chart dataframe
     """
 
-    ticker_history = yf.Ticker(ticker)
-    candle_dataframe = ticker_history.history(period=f'{horizon}')
+    stock = yf.Ticker(ticker)
+    candle_dataframe = stock.history(period=f'{horizon}')
     return candle_dataframe
 
 def plot_candlestick(ticker, horizon, candle_dataframe):
@@ -222,6 +203,7 @@ def plot_income_statement(dataframe):
 
     fig = px.bar(
     df_melted,
+    title='Net Income, Gross Profit and Total Revenue',
     x="Date",
     y="Amount",
     color="Metric",
@@ -263,7 +245,8 @@ def plot_assets_liabilities(dataframe):
         y="Amount",
         color="Metric",
         barmode="group",
-        title="Assets and Liabilities Over Time"
+        title="Assets and Liabilities Over Time",
+        labels={"Amount": "Amount ($)", "Date": "Date", "Metric": "Financial Metric"}
     )
 
     fig.update_layout(
@@ -338,13 +321,13 @@ def plot_earnings_history(dataframe):
             y=[row['epsActual']],
             mode='markers',
             marker=dict(size=12, color=color, line=dict(width=1, color='black')),
-            name="Actual EPS" if i == 0 else "",  # Add legend only for the first marker
+            name="Actual EPS" if i == 0 else "",  
             hovertemplate=(
                 f"<b>EPS Actual</b>: {row['epsActual']:.2f}<br>"
                 f"<b>Surprise %</b>: {row['surprisePercent']:.2f}%"
                 "<extra></extra>"
             ),
-            showlegend=(i == 0)  # Show legend only for the first instance
+            showlegend=(i == 0)  
         ))
 
     fig.update_layout(
